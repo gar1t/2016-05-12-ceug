@@ -1,0 +1,84 @@
+#-*-org-*-
+
+* Random notes
+
+** Python "with" blocks
+
+Show the block - and go through this mental process:
+
+- That's dumb, why indent code like that just to auto close a session?
+- But wait, how do I do this without this blocky thing? I use a
+  horrible exception handler! So this block is great!
+- But wait, how would I do this in Erlang?
+
+So here's a big step...
+
+In Erlang your thing that you want to cleanup on exit would trap exit
+on your process. You are moving responsibility for cleanup outside
+your code. That's a very important principle in Erlang - code isn't
+responsible for it's own exception handling.
+
+Need to define exception here.
+
+This gets into the "Error Handling" topic.
+
+** Lots of exception handling
+
+Example of guy in Poland.
+
+** Sequential processing - pipeline vs early return
+
+Show Python vs Erlang
+
+Explain this comes down to having cheap and consistent pass by value.
+
+Maybe [].show sort vs sorted([])?
+
+** Need to show basics of the language
+
+*** Basic types
+
+Atom, integer, float, list, tuple, function
+
+*** Other types
+
+Pids, ports, refs
+
+*** Consition expression
+
+Case, if
+
+*** Processes
+
+Lifecycle: start, init, run, stop/crash
+
+Trapping exits, links and monitors
+
+** Use of higher order functions
+
+*** For traditional "OO" behavior
+
+Show the wiring together:
+
+- Harder
+- Discourages "building for the future"
+- Explicit wiring is typically easier to reason about
+
+*** For sequential "workflow"
+
+Rather than hammer out a nested sequence conditional instructions,
+split the work being from the orchestration.fun
+
+* Programming method
+
+*** Build tool / setup
+*** Getting libraries
+
+Mention how I do it - what's the new package repo everyone's using
+these days?
+
+Mention also that I tend to write a lot of my own code. This is very
+common in Erlang and explains why there aren't a lot of libraries. Use
+the INI parsing example.
+
+Show the INI parse code.
