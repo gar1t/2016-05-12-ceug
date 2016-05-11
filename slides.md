@@ -512,3 +512,264 @@ default_emote(#pet{name=Name, sound=Sound}) ->
 angry_emote(#pet{name=Name}) ->
     print("~s ignores your request", [Name]).
 ```
+
+---
+
+# Sequential Erlang
+
+---
+
+### Silly but illustrative
+
+```erlang
+one() -> 3, 2, 1.
+
+a_case(N) ->
+    case N of
+        1 -> one;
+        N when N == 2 -> two;
+        N -> error({unknown, N})
+    end.
+
+an_if(N) ->
+    if
+        N == 1 -> one;
+        N == 2 -> two;
+        true -> error({unknown, N})
+    end.
+
+a_function(1) -> one;
+a_function(2) -> two;
+a_function(N) -> error({unknown, N}).
+```
+
+---
+
+### Some people like aligned arrows
+
+```erlang
+a_case(N) ->
+    case N of
+        1             -> one;
+        N when N == 2 -> two;
+        N             -> error({unknown, N})
+    end.
+
+an_if(N) ->
+    if
+        N == 1 -> one;
+        N == 2 -> two;
+        true   -> error({unknown, N})
+    end.
+
+a_function(1) -> one;
+a_function(2) -> two;
+a_function(N) -> error({unknown, N}).
+```
+
+---
+
+## `case` vs `if` vs `function`
+
+- case expressions should be rare
+- if expressions should be extremely rare to nonexistent
+- Functions are almost always better -- except for simple result mapping
+
+---
+
+#### `case` is fine here
+
+```erlang
+open(File) ->
+    case file:open("sample") of
+        {ok, F} -> File;
+        {error, enoent} -> undefined
+    end.
+```
+
+#### Doesn't add much
+
+```erlang
+open(File) ->
+    handle_file_open(file:open(File)).
+
+handle_file_open({ok, File}) -> File;
+handle_file_open({error, enoent}) -> undefined.
+```
+
+#### Improved name helps
+
+```erlang
+open(File) ->
+    file_or_undefined(file:open(File)).
+```
+
+---
+
+### From `rebar_dir.erl`
+
+```erlang
+make_absolute_path(Path) ->
+    case filename:pathtype(Path) of
+        absolute ->
+            Path;
+        relative ->
+            {ok, Dir} = file:get_cwd(),
+            filename:join([Dir, Path]);
+        volumerelative ->
+            Volume = hd(filename:split(Path)),
+            {ok, Dir} = file:get_cwd(Volume),
+            filename:join([Dir, Path])
+    end.
+```
+
+---
+
+### Make it super obvious
+
+```erlang
+make_absolute_path(Path) ->
+    to_abs(filename:pathtype(Path), Path).
+
+to_abs(absolute, Path) -> Path;
+to_abs(...) -> ...
+```
+
+---
+
+### Dispatch function
+
+```erlang
+to_abs(absolute,       Path) -> Path;
+to_abs(relative,       Path) -> rel_to_abs(Path);
+to_abs(volumerelative, Path) -> volrel_to_abs(Path).
+```
+
+---
+
+### More
+
+```erlang
+to_abs(absolute,       Path) -> Path;
+to_abs(relative,       Path) -> rel_to_abs(Path);
+to_abs(volumerelative, Path) -> volrel_to_abs(Path).
+
+rel_to_abs(Path)    -> filename:join(cwd(), Path).
+volrel_to_abs(Path) -> filename:join(vol_cwd(Path), Path).
+```
+
+---
+
+### Everything
+
+```erlang
+make_absolute_path(Path) ->
+    to_abs(filename:pathtype(Path), Path).
+
+to_abs(absolute,       Path) -> Path;
+to_abs(relative,       Path) -> rel_to_abs(Path);
+to_abs(volumerelative, Path) -> volrel_to_abs(Path).
+
+rel_to_abs(Path)    -> filename:join(cwd(), Path).
+volrel_to_abs(Path) -> filename:join(vol_cwd(Path), Path).
+
+cwd() ->
+    {ok, Cwd} = file:get_cwd(),
+    Cwd.
+
+vol_cwd(Path) ->
+    {ok, Cwd} = file:get_cwd(path_vol(Path)),
+    Cwd.
+
+path_vol(Path) -> hd(filename:split(Path)).
+```
+
+---
+
+### Original still not bad
+
+```erlang
+make_absolute_path(Path) ->
+    case filename:pathtype(Path) of
+        absolute ->
+            Path;
+        relative ->
+            {ok, Dir} = file:get_cwd(),
+            filename:join([Dir, Path]);
+        volumerelative ->
+            Volume = hd(filename:split(Path)),
+            {ok, Dir} = file:get_cwd(Volume),
+            filename:join([Dir, Path])
+    end.
+```
+
+---
+
+### Bad code
+
+```erlang
+profile_dir(Opts, Profiles) ->
+    {BaseDir, ProfilesStrings} = case [ec_cnv:to_list(P) || P <- Profiles] of
+        ["global" | _] -> {?MODULE:global_cache_dir(Opts), [""]};
+        ["bootstrap", "default"] -> {rebar_opts:get(Opts, base_dir, ?DEFAULT_BASE_DIR), ["default"]};
+        ["default"] -> {rebar_opts:get(Opts, base_dir, ?DEFAULT_BASE_DIR), ["default"]};
+        %% drop `default` from the profile dir if it's implicit and reverse order
+        %%  of profiles to match order passed to `as`
+        ["default"|Rest] -> {rebar_opts:get(Opts, base_dir, ?DEFAULT_BASE_DIR), Rest}
+    end,
+    ProfilesDir = string:join(ProfilesStrings, "+"),
+    filename:join(BaseDir, ProfilesDir).
+```
+
+---
+
+### Still bad
+
+```erlang
+profile_dir(Opts, Profiles) ->
+   {BaseDir, ProfilesStrings} =
+      case [ec_cnv:to_list(P) || P <- Profiles] of
+         ["global" | _] ->
+            {?MODULE:global_cache_dir(Opts), [""]};
+         ["bootstrap", "default"] ->
+            {rebar_opts:get(Opts, base_dir, ?DEFAULT_BASE_DIR),
+             ["default"]};
+         ["default"] ->
+            {rebar_opts:get(Opts, base_dir, ?DEFAULT_BASE_DIR),
+             ["default"]};
+         %% drop `default` from the profile dir if it's
+         %% implicity and reverse order of profiles to
+         %% match order passed to `as`
+         ["default"|Rest] ->
+            {rebar_opts:get(Opts, base_dir, ?DEFAULT_BASE_DIR),
+             Rest}
+      end,
+   ProfilesDir = string:join(ProfilesStrings, "+"),
+   filename:join(BaseDir, ProfilesDir).
+```
+
+---
+
+### Refactored, actually simple
+
+```erlang
+profile_dir(Opts, Profiles) ->
+    pr_dir(ensure_string_list(Profiles), Opts).
+
+pr_dir(["global"|_], Opts)             -> global_cache_dir(Opts);
+pr_dir(["bootstrap", "default"], Opts) -> default_pr_dir(Opts);
+pr_dir(["default"], Opts)              -> default_pr_dir(Opts);
+pr_dir(["default"|Rest)                -> plus_pr_dir(Opts, Rest).
+
+default_pr_dir(Opts) ->
+    filename:join(base_dir(Opts), "default").
+
+plus_pr_dir(Opts, Extra) ->
+    filename:join(base_dir(Opts), string:join(Extra, "+")).
+
+base_dir(Opts) ->
+    rebar_opts:get(Opts, base_dir, ?DEFAULT_BASE_DIR).
+
+ensure_string_list(L) -> [ec_cnv:to_list(X) || X <- L].
+```
+---
