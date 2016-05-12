@@ -17,6 +17,7 @@
 ## Notable omissions
 
 - Distribution
+- Type specs
 
 ---
 
@@ -277,18 +278,18 @@ fib(N) when N > 1 -> fib(N-1) + fib(N-2).
 
 ## Common attributes
 
-- `module` Required to declare a module
-- `export`<br>Declare functions accessible outside the module
-- `include` and `include_lib`<br>Include source from other files
-- `define` Define a macro
+- `-module` Required to declare a module
+- `-export`<br>Declare functions accessible outside the module
+- `-include` and `include_lib`<br>Include source from other files
+- `-define` Define a macro
 
 ---
 
 ## Common attributes (cont)
 
-- `record` Define a record
-- `behavior`<br>Declare module to implement a behavior interface
-- `import`<br>Import functions from other modules
+- `-record` Define a record
+- `-behavior`<br>Declare module to implement a behavior interface
+- `-import`<br>Import functions from other modules
 
 ---
 
@@ -487,6 +488,24 @@ Sprinkles ignores your request
 
 ---
 
+### Objects (from before)
+
+``` python
+>>> sam = Dog("Sam")
+>>> sam.emote()
+Sam says 'woof'
+
+>>> felix = Cat("Felix")
+>>> felix.emote()
+Felix says 'meow'
+
+>>> sprinkles = AngryCat("Sprinkles")
+>>> sprinkles.emote()
+Sprinkles ignores your request
+```
+
+---
+
 # But how?
 
 ---
@@ -517,7 +536,6 @@ angry_emote(Name, _Sound) ->
 - State is decoupled from the functions that operate on that state
 - Related state grouped with tuples
 - Related functions may define class-like behavior
-- Higher order functions enable polymorphic behavior
 
 ---
 
@@ -1216,6 +1234,13 @@ test_subtract() ->
     1 = 1 - 0,
     io:format("OK~n").
 ```
+
+---
+
+## Other useful tools
+
+- **Dialzer** Static code analysis (type checking)
+- **EDoc** Documentation generator
 
 ---
 
