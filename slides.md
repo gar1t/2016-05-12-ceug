@@ -1,3 +1,11 @@
+<style>
+.reveal .step {
+  text-align: left;
+  margin-left: 50px;
+  margin-top: 20px;
+}
+</style>
+
 # Topics
 
 - Sequential Erlang (the language)
@@ -996,11 +1004,106 @@ handle_call({add, X, Y}, _From, State) ->
 
 ---
 
-# Errors
+# But how?
 
 ---
 
-## First rule of error handling: never handle errors
+### Canonical process<br>management in Erlang
+
+- Use `gen_server` for OS process
+- Start core processes under your OTP app supervisor
+- Don't spawn/start a process directly -- use a supervisor running in
+  the application hierarchy
+
+---
+
+## e2
+
+- Wraps `gen_server`, `supervisor`, and `application` interfaces
+- Way easier and saner, readable, and fun!
+- Use for your Erlang projects -- unless you feel pain and suffering is
+  an Erlang badge of honor (many do)
+
+---
+
+# Exceptions
+
+---
+
+## First rule of exception handling: *never handle exception*
+
+---
+
+### A rich tradition, thank you Java
+
+```java
+try {
+   return somethingThatForcesYouToHandleException();
+} catch (SomeStupidException e) {
+   // No idea what to do here, but the compiler won't shut up!
+   e.printStackTrace(System.err);
+   return null;
+}
+```
+
+---
+
+### That Java feel, in Erlang
+
+```erlang
+try
+   something_that_might_crash()
+catch
+   error:Err ->
+       io:format("~p", [Err]),
+       undefined
+end
+```
+
+---
+
+## Exceptions
+
+- Are *exceptions* -- aka surprises, unexpected events
+- *Never* handle something you don't expect or don't understand
+- Again, if you expect it, it's not an exception
+- If exception (surprise, unexpected, unknown) then crash!
+
+---
+
+## Error handling workflow
+
+- By default, expect things to work and code assertively
+- As you learn to expect errors, handle them
+- A handled error isn't really an exception anymore -- it's part your
+  program behavior/logic/design
+
+---
+
+<div class="step">Step 1 - assume the best!</div>
+
+```erlang
+{ok, File} = file:open("some_file")
+```
+
+<div class="step">Step 2 - IF you see a crash ENOUGH to justify a change</div>
+
+```erlang
+open_file(Path) ->
+    case file:open(Path) of
+        {ok,    File}   -> File;
+        {error, enoent} -> find_missing_file(Path)
+    end.
+```
+
+<div class="step">Step 3 - Feel guilty about step 2 and question the<br>wisdom of complicating your program!</div>
+
+---
+
+## This doesn't work without
+
+- Actual process isolation<br>(guarantee of non-corrupting behavior)
+- Process supervision + reliable restart semantics
 
 ---
 
@@ -1010,8 +1113,10 @@ handle_call({add, X, Y}, _From, State) ->
 
 ## Libraries
 
-- xxx
-- yyy
+- Lots from core Erlang - start with `http://erlang.org/doc/man/`
+- The rest is on Github - use Google to search
+- Actually, use Hex Packages with `rebar3` - see `https://hex.pm`
+- Don't forget the "build" (roll your own) option!
 
 ---
 
@@ -1022,7 +1127,7 @@ handle_call({add, X, Y}, _From, State) ->
 ## Compile and package
 
 - **rebar3** Increasingly "feature filled" do-pretty-much-everything
-- erlang.mk Increasingly large Makefile include do-almost-everything
+- **erlang.mk** Increasingly large Makefile include do-almost-everything
 - **relx** Creating releases
 
 ---
@@ -1033,6 +1138,7 @@ handle_call({add, X, Y}, _From, State) ->
     as terrible
 - **common_test** Part of core, used by Ericsson, another weird framework
 - **proper** Quick Check like property based testing
+- **QuickCheck** Propery based testing -- imited free license + paid commercial
 
 ---
 
@@ -1059,3 +1165,29 @@ test_subtract() ->
     1 = 1 - 0,
     io:format("OK~n").
 ```
+
+---
+
+## Erlang community
+
+- ***First and foremost focused on solving problems that Erlang is good at solving***
+- Notoriously uninterested in library fit-and-finish or coddling learners
+- Extremely helpful when engaged
+- Entirely unarrogant, contrary to some
+
+---
+
+## Useful links
+
+- http://erlang.org
+- http://erlang.org/doc/man/
+- http://e2project.org
+- http://learnyousomeerlang.com/
+- http://github.com
+- http://www.amazon.com/s?field-keywords=erlang
+
+---
+
+# Questions
+
+<p>@gar1t on Twitter</p>
