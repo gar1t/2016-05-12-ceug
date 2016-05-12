@@ -2,13 +2,13 @@
 
 - Sequential Erlang (the language)
 - Process management
-- Libraries
-- Build, test, deploy
-- NOT distribution
+- Ecosystem (libraries, tools, community)
 
 ---
 
-# Motivation
+## Notable omissions
+
+- Distribution
 
 ---
 
@@ -51,13 +51,20 @@ handle_parsed({{error, Err}, P}) ->
 
 ---
 
-### Import to know!
+### Important to know!
 
 - Lower case names are *atoms*<br>`red, cat, ok`
 - Upper case names are *variables*<br>`Color, Pet, Status`
 - Square brackets are *lists*<br>`[Color, 123, "Sam"]`
 - Curley brackets are *tuples*<br>`{car, {"Dodge", "Dart"}, 1988}`
+
+---
+
+# Important to know (cont)
+
 - Function calls look like this<br>`math:add(1, 2)`
+- Function is uniquely identified in a module by *name* and *arity*
+  (number of arguments)
 
 ---
 
@@ -149,6 +156,12 @@ children() ->
 
 ---
 
+### Observer - Apps
+
+<img src="apps.png">
+
+---
+
 ### Releases contain *applications*<br>AND<br>Instructions for starting and running a *full system*
 
 ---
@@ -228,7 +241,7 @@ fib(N) when N > 1 -> fib(N-1) + fib(N-2).
 
 ---
 
-### Module *attributes* give the compiler extra information
+### *Attributes* give the compiler extra information
 
 ---
 
@@ -295,6 +308,20 @@ N = 3
 
 ---
 
+### What happens when<br>`N` is negative?
+
+```erlang
+fib(0)            -> 0;
+fib(1)            -> 1;
+fib(N) when N > 1 -> fib(N-1) + fib(N-2).
+```
+
+---
+
+## More on *crashing* later
+
+---
+
 ## Erlang does *value* checking
 
 ---
@@ -345,9 +372,13 @@ if x is None: crash()
 # Function
 
 - One of two central abstractions in Erlang (other is *process*)
-- A term -- i.e. can be bound to variables, included in lists, etc.
+- Referenceable as a term -- can be bound to variables, included in lists, etc.
 - Used to implement iteration (recursion)
 - Used to implement conditional branching
+
+---
+
+## Functional programming<br><small>(vs the world)</small>
 
 ---
 
@@ -392,7 +423,11 @@ Sprinkles ignores your request
 
 ---
 
-## So much goodness from OO!
+<img src="oops.png">
+
+---
+
+### So much goodness from OOP!
 
 - Common state across classes (name and sound)
 - Default implementation of a function
@@ -422,7 +457,7 @@ Sprinkles ignores your request
 
 ---
 
-# So clean, but how?
+# But how?
 
 ---
 
@@ -446,7 +481,7 @@ angry_emote(Name, _Sound) ->
 
 ---
 
-## OO vs Erlang
+## OOP vs Erlang
 
 - No classes, no inheritance
 - State is decoupled from the functions that operate on that state
@@ -519,7 +554,7 @@ angry_emote(#pet{name=Name}) ->
 
 ---
 
-### Silly but illustrative
+## Silly, illustrative
 
 ```erlang
 one() -> 3, 2, 1.
@@ -545,7 +580,7 @@ a_function(N) -> error({unknown, N}).
 
 ---
 
-### Some people like aligned arrows
+### OCDified arrows
 
 ```erlang
 a_case(N) ->
@@ -750,16 +785,16 @@ profile_dir(Opts, Profiles) ->
 
 ---
 
-### Refactored, actually simple
+### Refactored, turns out simple
 
 ```erlang
 profile_dir(Opts, Profiles) ->
     pr_dir(ensure_string_list(Profiles), Opts).
 
-pr_dir(["global"|_], Opts)             -> global_cache_dir(Opts);
+pr_dir(["global"|_],             Opts) -> global_cache_dir(Opts);
 pr_dir(["bootstrap", "default"], Opts) -> default_pr_dir(Opts);
-pr_dir(["default"], Opts)              -> default_pr_dir(Opts);
-pr_dir(["default"|Rest)                -> plus_pr_dir(Opts, Rest).
+pr_dir(["default"],              Opts) -> default_pr_dir(Opts);
+pr_dir(["default"|Rest],         Opts) -> plus_pr_dir(Opts, Rest).
 
 default_pr_dir(Opts) ->
     filename:join(base_dir(Opts), "default").
@@ -773,3 +808,254 @@ base_dir(Opts) ->
 ensure_string_list(L) -> [ec_cnv:to_list(X) || X <- L].
 ```
 ---
+
+# Process management
+
+---
+
+## Functions do stuff, but who *calls* the functions?
+
+---
+
+## Process
+
+- One of two central abstractions in Erlang (other is *function*)
+- Referenceable as a term -- can be bound to variables, included in lists, etc.
+- Used to execute a function in an independent thread
+- Full process semantics -- i.e. not POSIX style threads
+- Enables system oriented programming
+
+---
+
+# System oriented programming?
+
+---
+
+# A good system
+
+- Runs predictably when components fail
+- Runs predictably when components are added, removed, or modified
+- Resiliant to higher levels of experimentation and change
+
+---
+
+## Processes are not POSIX style threads
+
+- Isolated heap
+- Preemptively controlled by the Erlang VM, not user space
+- Trappable exits
+
+---
+
+### Like OS processes
+
+<img src="processes.png">
+
+---
+
+### Like an OS
+
+<img src="load.png">
+
+---
+
+<img src="os.png">
+
+---
+
+## Working with a process
+
+---
+
+### A math "thing" - what is it?
+
+```erlang
+1> {ok, Math} = math:start_link(),
+1> math:add(Math, 1, 2).
+3
+```
+---
+
+## A process
+
+- Started using `spawn` or `spawn_link`
+- Runs a function taking no arguments
+- Can be assigned (bound) to a variable
+- Can receive messages
+- Can be inspected (run state, memory, message queue, etc.)
+
+---
+
+```
+1> P = spawn(fun() -> receive _ -> ok end end).
+<0.36.0>
+2> process_info(P).
+[{current_function,{prim_eval,'receive',2}},
+ {initial_call,{erlang,apply,2}},
+ {status,waiting},
+ {message_queue_len,0},
+ {messages,[]},
+ {links,[]},
+ {dictionary,[]},
+ {trap_exit,false},
+ {error_handler,error_handler},
+ {priority,normal},
+ {group_leader,<0.27.0>},
+ {total_heap_size,233},
+ {heap_size,233},
+ {stack_size,9},
+ {reductions,17},
+ {garbage_collection,[{min_bin_vheap_size,46422},
+                      {min_heap_size,233},
+                      {fullsweep_after,65535},
+                      {minor_gcs,0}]},
+ {suspending,[]}]
+```
+---
+
+### Two general categories of<br>Erlang process
+
+- "Fire and forget" -- intended to perform a task and exit
+- "Server" -- serve requests via message passing forever
+
+---
+
+### Two general categories of<br>OS process
+
+- "Fire and forget" -- batch job
+- "Server" -- daemon
+
+---
+
+## Client, server, messages
+
+<img src="client-server.gif">
+
+---
+
+### Client and server code
+
+```erlang
+%% === Client code ===============================
+
+start_link() -> spawn_link(fun math_loop/0).
+
+add(Math, X, Y) ->
+    Math ! {{add, X, Y}, self()},
+    receive
+        {math_resp, Z} -> Z
+    after
+        5000 -> error(timeout)
+    end.
+
+%% === Server code ===============================
+
+math_loop() ->
+    receive
+        {{add, X, Y}, Caller} ->
+            Caller ! {math_resp, X + Y}
+    end,
+    math_loop().
+```
+---
+
+### Better client and server code
+
+```erlang
+%% === Client code ===============================
+
+start_link() ->
+    gen_server:start_link(?MODULE).
+
+add(Math, X, Y) ->
+    gen_server:call({add, X, Y}).
+
+%% === Server code ===============================
+
+handle_call({add, X, Y}, _From, State) ->
+    {reply, X + Y, State}.
+```
+
+---
+
+## gen_server
+
+- Fancy interface for a process
+- Does important things on behalf of a client and server
+- Always use unless you know why you shouldn't
+- Example of an Erlang behavior (module export contract)
+
+---
+
+## Process supervision
+
+- Process exits can be trapped!
+- A process cannot recover itself -- that's someone else's job
+- Supervisor is a process that monitors and recovers another process
+- Erlang isn't fault tolerant otherwise - just faulty
+
+---
+
+# Errors
+
+---
+
+## First rule of error handling: never handle errors
+
+---
+
+# Erlang ecosystem
+
+---
+
+## Libraries
+
+- xxx
+- yyy
+
+---
+
+# Tools
+
+---
+
+## Compile and package
+
+- **rebar3** Increasingly "feature filled" do-pretty-much-everything
+- erlang.mk Increasingly large Makefile include do-almost-everything
+- **relx** Creating releases
+
+---
+
+## Testing
+
+- **eunit** Inspired from the world's worse test framework, every bit
+    as terrible
+- **common_test** Part of core, used by Ericsson, another weird framework
+- **proper** Quick Check like property based testing
+
+---
+
+## Testing without the pain
+
+```
+-module(my_tests).
+
+-export([run/0]).
+
+run() ->
+    test_add(),
+    test_subtract().
+
+test_add() ->
+    io:format("add: "),
+    0 = 0 + 0,
+    1 = 0 + 1,
+    io:format("OK~n").
+
+test_subtract() ->
+    io:format("subtract: "),
+    0 = 0 - 0,
+    1 = 1 - 0,
+    io:format("OK~n").
+```
