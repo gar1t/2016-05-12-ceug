@@ -233,6 +233,10 @@ $ rel/tensorhub_release/erts-7.3/bin/erl \
 
 ---
 
+## App configuration
+
+---
+
 ### `priv/dev.config`
 
 ```erlang
@@ -317,6 +321,16 @@ fib(N) when N > 1 -> fib(N-1) + fib(N-2).
 
 ---
 
+### What happens when<br>`N` is negative?
+
+```erlang
+fib(0)            -> 0;
+fib(1)            -> 1;
+fib(N) when N > 1 -> fib(N-1) + fib(N-2).
+```
+
+---
+
 ## Pattern matching
 
 ```erlang
@@ -336,21 +350,6 @@ N = 3
 2 = 3
 {ok, X} = [1, 2, 3]
 ```
-
----
-
-### What happens when<br>`N` is negative?
-
-```erlang
-fib(0)            -> 0;
-fib(1)            -> 1;
-fib(N) when N > 1 -> fib(N-1) + fib(N-2).
-```
-
----
-
-## More on *crashing* later
-
 ---
 
 ## Erlang does *value* checking
@@ -994,7 +993,7 @@ ensure_string_list(L) -> [ec_cnv:to_list(X) || X <- L].
 
 ---
 
-#### Math thing is a process -- or "server"
+#### That math thing -- it's a process!<br><small>Or "server"</small>
 
 ```erlang
 1> {ok, Math} = math:start_link(),
@@ -1169,7 +1168,7 @@ open_file(Path) ->
 
 ---
 
-## Erlang process isolation plus trappable exits =<br>*fault tolerance*
+## Erlang process isolation plus trappable exits =<br><u>*fault tolerance*</u>
 
 ---
 
