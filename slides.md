@@ -857,7 +857,7 @@ ensure_string_list(L) -> [ec_cnv:to_list(X) || X <- L].
 ```
 ---
 
-## Summarizing functions
+## Function <small>(cont)</small>
 
 - Pretty much all you get in Erlang
 - Don't really need much else
@@ -878,7 +878,7 @@ ensure_string_list(L) -> [ec_cnv:to_list(X) || X <- L].
 ## Process
 
 - One of two central abstractions in Erlang (other is *function*)
-- Referenceable as a term -- can be bound to variables, included in lists, etc.
+- Referenceable by a term (process ID) -- can be bound to variables, included in lists, etc.
 - Used to execute a function in an independent thread
 - Full process semantics -- i.e. not POSIX style threads
 
@@ -937,7 +937,7 @@ ensure_string_list(L) -> [ec_cnv:to_list(X) || X <- L].
 
 - Started using `spawn` or `spawn_link`
 - Runs a function taking no arguments
-- Can be assigned (bound) to a variable
+- Process ID can be assigned (bound) to a variable
 - Can receive messages
 - Can be inspected (run state, memory, message queue, etc.)
 
@@ -990,7 +990,11 @@ ensure_string_list(L) -> [ec_cnv:to_list(X) || X <- L].
 
 ---
 
-### That math thing is a "server"
+### A crash in one process will not corrupt the state of any other process!
+
+---
+
+#### Math thing is a process -- or "server"
 
 ```erlang
 1> {ok, Math} = math:start_link(),
@@ -1000,7 +1004,7 @@ ensure_string_list(L) -> [ec_cnv:to_list(X) || X <- L].
 
 ---
 
-### A `math` module
+### A `math` server module
 
 ```erlang
 %% === Client code ===============================
@@ -1026,7 +1030,7 @@ math_loop() ->
 ```
 ---
 
-### A better `math` module
+### Better `math` server module
 
 ```erlang
 %% === Client code ===============================
@@ -1085,7 +1089,7 @@ handle_call({add, X, Y}, _From, State) ->
 
 ---
 
-## First rule of exception handling: *never handle exception*
+## First rule of exception handling: *never handle exceptions*
 
 ---
 
@@ -1121,7 +1125,6 @@ end
 
 - Are *exceptions* -- aka surprises, unexpected events
 - *Never* handle something you don't expect or don't understand
-- Again, if you expect it, it's not an exception
 - Let exceptions crash the process!
 
 ---
@@ -1166,7 +1169,7 @@ open_file(Path) ->
 
 ---
 
-## Erlang process isolation plus trappable exits =<br>fault tolerance
+## Erlang process isolation plus trappable exits =<br>*fault tolerance*
 
 ---
 
