@@ -24,7 +24,7 @@
 
 - Concurrency
 - Ecosystem
-- Simple, functional (immutable)
+- Simple, functional
 
 ---
 
@@ -68,11 +68,34 @@ handle_parsed({{error, Err}, P}) ->
 
 ---
 
-# Important to know (cont)
+### Important to know <small>(cont)</small>
 
 - Function calls look like this<br>`math:add(1, 2)`
 - Function is uniquely identified in a module by *name* and *arity*
   (number of arguments)
+
+---
+
+### Some Erlang <small>(again)</small>
+
+```erlang
+-module(sample_cli).
+
+-export([main/1]).
+
+main(Args) ->
+    Parser = sample_parser(),
+    handle_parsed(cli:parse_args(Args, Parser)).
+
+handle_parsed({{ok, print_help}, P}) ->
+    cli:print_help(P);
+handle_parsed({{ok, print_version}, P}) ->
+    cli:print_version(P);
+handle_parsed({{ok, Parsed}, _P}) ->
+    handle_args(Parsed);
+handle_parsed({{error, Err}, P}) ->
+    cli:print_error_and_halt(Err, P).
+```
 
 ---
 
@@ -81,7 +104,6 @@ handle_parsed({{error, Err}, P}) ->
 - **Module**<br>One erl source file, compiles to beam
 - **Application**<br>Bundle of beams + app metadata
 - **Release**<br>Bundle of applications + boot script
-- **escripts** Shell interface
 
 ---
 
@@ -495,7 +517,7 @@ angry_emote(Name, _Sound) ->
 - State is decoupled from the functions that operate on that state
 - Related state grouped with tuples
 - Related functions may define class-like behavior
-- Higher order functions expose
+- Higher order functions enable polymorphic behavior
 
 ---
 
@@ -817,6 +839,16 @@ ensure_string_list(L) -> [ec_cnv:to_list(X) || X <- L].
 ```
 ---
 
+## Summarizing functions
+
+- Pretty much all you get in Erlang
+- Don't really need much else
+- Pattern matching in Erlang used for parametric dispatch (polymorphism)
+- Higher order functions used for OO like extensibility
+- Correy Haines *still* prefers objects, which seems wrong
+
+---
+
 # Process management
 
 ---
@@ -831,11 +863,10 @@ ensure_string_list(L) -> [ec_cnv:to_list(X) || X <- L].
 - Referenceable as a term -- can be bound to variables, included in lists, etc.
 - Used to execute a function in an independent thread
 - Full process semantics -- i.e. not POSIX style threads
-- Enables system oriented programming
 
 ---
 
-# System oriented programming?
+## Erlang processes enable<br>system oriented programming
 
 ---
 
@@ -850,7 +881,7 @@ ensure_string_list(L) -> [ec_cnv:to_list(X) || X <- L].
 ## Processes are not POSIX style threads
 
 - Isolated heap
-- Preemptively controlled by the Erlang VM, not user space
+- Preemptively controlled by the Erlang VM -- not user space
 - Trappable exits
 
 ---
@@ -884,7 +915,7 @@ ensure_string_list(L) -> [ec_cnv:to_list(X) || X <- L].
 ```
 ---
 
-## A process
+## Process <small>(cont)</small>
 
 - Started using `spawn` or `spawn_link`
 - Runs a function taking no arguments
@@ -941,7 +972,17 @@ ensure_string_list(L) -> [ec_cnv:to_list(X) || X <- L].
 
 ---
 
-### Client and server code
+### That math thing is a "server"
+
+```erlang
+1> {ok, Math} = math:start_link(),
+1> math:add(Math, 1, 2).
+3
+```
+
+---
+
+### A `math` module
 
 ```erlang
 %% === Client code ===============================
@@ -967,7 +1008,7 @@ math_loop() ->
 ```
 ---
 
-### Better client and server code
+### A better `math` module
 
 ```erlang
 %% === Client code ===============================
@@ -989,9 +1030,9 @@ handle_call({add, X, Y}, _From, State) ->
 ## gen_server
 
 - Fancy interface for a process
-- Does important things on behalf of a client and server
+- Provides important functionality for clients and servers
 - Always use unless you know why you shouldn't
-- Example of an Erlang behavior (module export contract)
+- Prime example of an Erlang *behavior* (module export contract)
 
 ---
 
@@ -1004,16 +1045,12 @@ handle_call({add, X, Y}, _From, State) ->
 
 ---
 
-# But how?
+## Canonical process<br>management in Erlang
 
----
-
-### Canonical process<br>management in Erlang
-
-- Use `gen_server` for OS process
-- Start core processes under your OTP app supervisor
-- Don't spawn/start a process directly -- use a supervisor running in
-  the application hierarchy
+- Use `gen_server` (or derived) for your process
+- Start app processes under the app supervisor
+- Don't spawn/start a process directly -- use a supervisor, which was
+  started under the app supervisor
 
 ---
 
@@ -1067,7 +1104,7 @@ end
 - Are *exceptions* -- aka surprises, unexpected events
 - *Never* handle something you don't expect or don't understand
 - Again, if you expect it, it's not an exception
-- If exception (surprise, unexpected, unknown) then crash!
+- Let exceptions crash the process!
 
 ---
 
@@ -1107,6 +1144,14 @@ open_file(Path) ->
 
 ---
 
+## Erlang process isolation plus trappable exits =<br>less code + dramatically higher reliability
+
+---
+
+## Erlang process isolation plus trappable exits =<br>fault tolerance
+
+---
+
 # Erlang ecosystem
 
 ---
@@ -1116,7 +1161,13 @@ open_file(Path) ->
 - Lots from core Erlang - start with `http://erlang.org/doc/man/`
 - The rest is on Github - use Google to search
 - Actually, use Hex Packages with `rebar3` - see `https://hex.pm`
-- Don't forget the "build" (roll your own) option!
+- Don't forget the roll-your-own option!
+
+---
+
+## Reinvent that wheel!
+
+<img src="wheels.png">
 
 ---
 
@@ -1138,7 +1189,7 @@ open_file(Path) ->
     as terrible
 - **common_test** Part of core, used by Ericsson, another weird framework
 - **proper** Quick Check like property based testing
-- **QuickCheck** Propery based testing -- imited free license + paid commercial
+- **QuickCheck** Propery based testing -- limited free license + paid commercial
 
 ---
 
@@ -1173,7 +1224,7 @@ test_subtract() ->
 - ***First and foremost focused on solving problems that Erlang is good at solving***
 - Notoriously uninterested in library fit-and-finish or coddling learners
 - Extremely helpful when engaged
-- Entirely unarrogant, contrary to some
+- Entirely unarrogant
 
 ---
 
