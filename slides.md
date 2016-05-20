@@ -679,7 +679,7 @@ handle_file_open({ok, File}) -> File;
 handle_file_open({error, enoent}) -> undefined.
 ```
 
-#### Improved name helps
+#### Improved name?
 
 ```erlang
 open(File) ->
@@ -737,6 +737,7 @@ to_abs(relative,       Path) -> rel_to_abs(Path);
 to_abs(volumerelative, Path) -> volrel_to_abs(Path).
 
 rel_to_abs(Path)    -> filename:join(cwd(), Path).
+
 volrel_to_abs(Path) -> filename:join(vol_cwd(Path), Path).
 ```
 
@@ -768,7 +769,7 @@ path_vol(Path) -> hd(filename:split(Path)).
 
 ---
 
-### Original still not bad
+### Original, still not bad
 
 ```erlang
 make_absolute_path(Path) ->
@@ -972,7 +973,7 @@ ensure_string_list(L) -> [ec_cnv:to_list(X) || X <- L].
 ### Two general categories of<br>Erlang process
 
 - "Fire and forget" -- intended to perform a task and exit
-- "Server" -- serve requests via message passing forever
+- "Server" -- serve requests via message-passing forever-or-awhile
 
 ---
 
@@ -993,13 +994,42 @@ ensure_string_list(L) -> [ec_cnv:to_list(X) || X <- L].
 
 ---
 
-#### That math thing -- it's a process!<br><small>Or "server"</small>
+#### That math thing -- it's a process!<br><small>"Server"</small>
 
 ```erlang
 1> {ok, Math} = math:start_link(),
 1> math:add(Math, 1, 2).
 3
 ```
+
+---
+
+### Important to know
+
+```erlang
+Pid ! Msg
+```
+
+- Means *send Msg to process Pid*
+- No guarantee of message delivery
+- `Msg` is added to a process owner queue
+
+---
+
+### Important to know
+
+```
+receive
+   {ok, Val} -> handle_good(Val);
+   {error, Err} -> handle_bad(Err)
+after
+   Timeout -> handle_timeout()
+end
+```
+
+- `receive` waits on matching message
+- Removes match from message queue
+- Timeouts handed in `after`
 
 ---
 
@@ -1050,7 +1080,7 @@ handle_call({add, X, Y}, _From, State) ->
 
 ## gen_server
 
-- Fancy interface for a process
+- Fancy interface around a process
 - Provides important functionality for clients and servers
 - Always use unless you know why you shouldn't
 - Prime example of an Erlang *behavior* (module export contract)
@@ -1061,7 +1091,7 @@ handle_call({add, X, Y}, _From, State) ->
 
 - Process exits can be trapped!
 - A process cannot recover itself -- that's someone else's job
-- Supervisor is a process that monitors and recovers another process
+- Supervisor is a process that monitors and possibly restarts another process
 - Erlang isn't fault tolerant otherwise - just faulty
 
 ---
@@ -1251,7 +1281,7 @@ test_subtract() ->
 - ***First and foremost focused on solving problems that Erlang is good at solving***
 - Notoriously uninterested in library fit-and-finish or coddling learners
 - Extremely helpful when engaged
-- Entirely unarrogant
+- Entirely unarrogant -- on average, over time
 
 ---
 
@@ -1259,10 +1289,10 @@ test_subtract() ->
 
 - http://erlang.org
 - http://erlang.org/doc/man/
-- http://e2project.org
 - http://learnyousomeerlang.com/
 - http://github.com
 - http://www.amazon.com/s?field-keywords=erlang
+- http://e2project.org
 
 ---
 
